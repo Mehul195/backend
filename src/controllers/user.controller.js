@@ -6,7 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const getAccessTokenAndRefreshToken=async(userId)=>{
     try {
-        const user=User.findById(userId);
+        const user=await User.findById(userId);
     const accessToken= user.generateAccessToken();
     const refreshToken=user.generateRefreshToken();
     user.refreshToken=refreshToken;
@@ -79,20 +79,22 @@ const registerUser=asynchandler( async(req,res)=>{
         new ApiResponse(200,createdUser,"User is registered Succesfully")
     )
 
-});
+})
 
 
-const loginUser=asynchandler(async(req,res)=>{
+const loginUser=asynchandler( async(req,res)=>{
 
-    const{username,email,password}=req.body;
+    const{email,username,password}=req.body
+    
 
-    if(!username || !email){
+    if(!(username || email)){
         throw new ApiError(400,"Username or email is required");
     }
 
     const user=await User.findOne({
         $or:[{username},{email}]
     })
+    console.log(user)
 
     if(!user){
         throw new ApiError(402,"User is not available");
@@ -146,14 +148,10 @@ const logOutUser=asynchandler(async(req,res)=>{
             secure:true
         }
 
-        req.status(200)
+        res.status(200)
         .clearCookie("accessToken",option)
         .clearCookie("refreshToken",option)
-        .json(200,{},"User logged out successfully")
-
-
-
-
+        .json(new ApiResponse(200,{},"User logged out successfully"))
 })
 
 
