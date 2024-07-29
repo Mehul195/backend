@@ -37,7 +37,7 @@ userRouter.route("/update-account").patch(verifyToken,updateAccountDetail)
 userRouter.route("/avatar").patch(verifyToken,upload.single("avatar"),updateUserAvatar)
 
 
-userRouter.route("/cover-Image").patch(verifyToken,upload.single("/coverImage"),updateUsercoverImage)
+userRouter.route("/cover-Image").patch(verifyToken,upload.single("coverImage"),updateUsercoverImage)
 
 userRouter.route("/c/:username").get(verifyToken,getUserChannelProfile)
 

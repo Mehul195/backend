@@ -6,6 +6,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
+
+
 const getAccessTokenAndRefreshToken=async(userId)=>{
     try {
         const user=await User.findById(userId);
@@ -102,7 +104,7 @@ const loginUser=asynchandler( async(req,res)=>{
         throw new ApiError(402,"User is not available");
     }
 
-    const isPasswordValid=user.isPasswordCorrect(password);
+    const isPasswordValid=await user.isPasswordCorrect(password);
 
     if(!isPasswordValid){
         throw new ApiError(401,"Invalid User credintials ")
@@ -138,8 +140,8 @@ const loginUser=asynchandler( async(req,res)=>{
 const logOutUser=asynchandler(async(req,res)=>{
    await  User.findByIdAndUpdate(
        req.user._id,{
-        $set:{
-            refreshToken:undefined
+        $unset:{
+            refreshToken:1
         }},
         {
             new:true
@@ -186,7 +188,7 @@ const refreshAccessToken=asynchandler( async(req,res)=>{
             secure:true
         }
     
-        req.status(200)
+        return res.status(200)
         .cookie("accessToken",accessToken,option)
         .cookie("refreshToken",newRefreshToken,option)
         .json(
@@ -354,9 +356,9 @@ return res.status(200)
 
 
 const getWatchHistory=asynchandler(async(req,res)=>{
-    const user=User.aggregate([{
+    const user=await User.aggregate([{
         $match:{
-            _id:mongoose.Types.ObjectId(req.user._id)
+            _id:new mongoose.Types.ObjectId(req.user._id)
                 }
     },
     {
@@ -383,15 +385,16 @@ const getWatchHistory=asynchandler(async(req,res)=>{
                 },
                 {
                     $addFields:{
+                        owner:{
                         $first:"$owner"
                     }
-                }
+                }}
             ]
 
         }
 
     }
-])
+]);
 return res.status(200).json(
     new ApiResponse(200,user[0].watchHistory,"Watch History is fetched Successfully")
 )
